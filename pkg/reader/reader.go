@@ -116,6 +116,15 @@ func read_atom(reader *Reader) (MalType, error) {
 		// We know it had a quote at the start and end, strip them and process
 		return process_string(next[1 : len(next)-1])
 	}
+	if next == "false" {
+		return MalType(false), nil
+	}
+	if next == "true" {
+		return MalType(true), nil
+	}
+	if next == "nil" {
+		return MalType(nil), nil
+	}
 	if check_number(next) {
 		return strconv.Atoi(next)
 	}
@@ -265,6 +274,10 @@ func Read_str(s string) (MalType, error) {
 }
 
 func Pr_str(o MalType, readably bool) {
+	if o == nil {
+		fmt.Print("nil")
+		return
+	}
 	switch t := o.(type) {
 	case string:
 		if len(t) > 0 {
