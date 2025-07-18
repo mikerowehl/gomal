@@ -9,3 +9,6 @@ cmd/step2_eval/step2_eval: cmd/step2_eval/step2_eval.go pkg/reader/reader.go
 
 cmd/step3_env/step3_env: cmd/step3_env/step3_env.go pkg/reader/reader.go pkg/env/env.go
 	cd cmd/step3_env; go build
+
+cmd/step4_if_fn_do/step4_if_fn_do: cmd/step4_if_fn_do/step4_if_fn_do.go pkg/reader/reader.go pkg/env/env.go pkg/core/core.go
+	cd cmd/step4_if_fn_do; go build

@@ -2,6 +2,7 @@ package reader
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,6 +14,10 @@ type MalList []any
 type MalVector []any
 type MalHashmap []any
 type MalFunc func(MalType) (MalType, error)
+
+var MalListType = reflect.TypeOf(MalList{})
+var MalVectorType = reflect.TypeOf(MalVector{})
+var MalHashmapType = reflect.TypeOf(MalHashmap{})
 
 type Reader struct {
 	Tokens  []string
@@ -273,60 +278,73 @@ func Read_str(s string) (MalType, error) {
 	return read_form(reader)
 }
 
-func Pr_str(o MalType, readably bool) {
+func Pr_str(o MalType, readably bool) string {
 	if o == nil {
-		fmt.Print("nil")
-		return
+		return "nil"
 	}
 	switch t := o.(type) {
 	case string:
 		if len(t) > 0 {
 			runes := []rune(t)
 			if runes[0] == rune(0x29e) {
-				fmt.Print(":")
-				fmt.Print(string(runes[1:]))
+				return ":" + string(runes[1:])
 			} else {
 				if readably {
-					fmt.Print(`"` + escapestr(t) + `"`)
+					return `"` + escapestr(t) + `"`
 				} else {
-					fmt.Print(`"` + t + `"`)
+					return `"` + t + `"`
 				}
 			}
 		} else {
-			fmt.Print(`""`)
+			return `""`
 		}
 	case int:
-		fmt.Print(t)
+		return strconv.Itoa(t)
+	case bool:
+		if t {
+			return "true"
+		} else {
+			return "false"
+		}
 	case MalSymbol:
-		fmt.Print(t)
+		return string(t)
 	case MalList:
-		fmt.Print("(")
+		var sb strings.Builder
+		sb.WriteString("(")
 		sep := ""
 		for _, sub := range t {
-			fmt.Print(sep)
-			Pr_str(sub, readably)
+			sb.WriteString(sep)
+			sb.WriteString(Pr_str(sub, readably))
 			sep = " "
 		}
-		fmt.Print(")")
+		sb.WriteString(")")
+		return sb.String()
 	case MalVector:
-		fmt.Print("[")
+		var sb strings.Builder
+		sb.WriteString("[")
 		sep := ""
 		for _, sub := range t {
-			fmt.Print(sep)
-			Pr_str(sub, readably)
+			sb.WriteString(sep)
+			sb.WriteString(Pr_str(sub, readably))
 			sep = " "
 		}
-		fmt.Print("]")
+		sb.WriteString("]")
+		return sb.String()
 	case MalHashmap:
-		fmt.Print("{")
+		var sb strings.Builder
+		sb.WriteString("{")
 		sep := ""
 		for _, sub := range t {
-			fmt.Print(sep)
-			Pr_str(sub, readably)
+			sb.WriteString(sep)
+			sb.WriteString(Pr_str(sub, readably))
 			sep = " "
 		}
-		fmt.Print("}")
+		sb.WriteString("}")
+		return sb.String()
+	case MalFunc:
+		return "#<function>"
 	}
+	return "-unknown-"
 }
 
 /*

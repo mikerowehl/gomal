@@ -1,6 +1,8 @@
 package env
 
 import (
+	"fmt"
+
 	"github.com/mikerowehl/gomal/pkg/reader"
 )
 
@@ -29,4 +31,40 @@ func NewBindings(outer *Bindings) *Bindings {
 		Outer: outer,
 	}
 	return &b
+}
+
+func NewLambda(outer *Bindings, binds reader.MalList, exprs reader.MalList) (*Bindings, error) {
+	if len(binds) != len(exprs) {
+		return nil, fmt.Errorf("NewLambda: binds and exprs length mismatch")
+	}
+	b := Bindings{
+		Data:  make(map[reader.MalSymbol]reader.MalType),
+		Outer: outer,
+	}
+	for i := range binds {
+		k, ok := binds[i].(reader.MalSymbol)
+		if !ok {
+			return nil, fmt.Errorf("NewLambda: lambda binding not a symbol: %v", binds[i])
+		}
+		b.Set(k, exprs[i])
+	}
+	return &b, nil
+}
+
+func NewLambdaVec(outer *Bindings, binds reader.MalVector, exprs reader.MalList) (*Bindings, error) {
+	if len(binds) != len(exprs) {
+		return nil, fmt.Errorf("NewLambdaVec: binds and exprs length mismatch")
+	}
+	b := Bindings{
+		Data:  make(map[reader.MalSymbol]reader.MalType),
+		Outer: outer,
+	}
+	for i := range binds {
+		k, ok := binds[i].(reader.MalSymbol)
+		if !ok {
+			return nil, fmt.Errorf("NewLambda: lambda binding not a symbol: %v", binds[i])
+		}
+		b.Set(k, exprs[i])
+	}
+	return &b, nil
 }
