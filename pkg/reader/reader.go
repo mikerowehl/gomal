@@ -292,11 +292,15 @@ func Pr_str(o MalType, readably bool) string {
 				if readably {
 					return `"` + escapestr(t) + `"`
 				} else {
-					return `"` + t + `"`
+					return t
 				}
 			}
 		} else {
-			return `""`
+			if readably {
+				return `""`
+			} else {
+				return ""
+			}
 		}
 	case int:
 		return strconv.Itoa(t)

@@ -34,37 +34,61 @@ func NewBindings(outer *Bindings) *Bindings {
 }
 
 func NewLambda(outer *Bindings, binds reader.MalList, exprs reader.MalList) (*Bindings, error) {
-	if len(binds) != len(exprs) {
-		return nil, fmt.Errorf("NewLambda: binds and exprs length mismatch")
-	}
 	b := Bindings{
 		Data:  make(map[reader.MalSymbol]reader.MalType),
 		Outer: outer,
 	}
-	for i := range binds {
+	i := 0
+	done := false
+	for i < len(binds) && !done {
 		k, ok := binds[i].(reader.MalSymbol)
 		if !ok {
 			return nil, fmt.Errorf("NewLambda: lambda binding not a symbol: %v", binds[i])
 		}
-		b.Set(k, exprs[i])
+		if k == reader.MalSymbol("&") {
+			if i+1 >= len(binds) {
+				return nil, fmt.Errorf("NewLambda: variadic marker with no following symbol")
+			}
+			variadic, ok := binds[i+1].(reader.MalSymbol)
+			if !ok {
+				return nil, fmt.Errorf("NewLambda: variadic market not a symbol")
+			}
+			b.Set(variadic, exprs[i:])
+			done = true
+		} else {
+			b.Set(k, exprs[i])
+		}
+		i++
 	}
 	return &b, nil
 }
 
 func NewLambdaVec(outer *Bindings, binds reader.MalVector, exprs reader.MalList) (*Bindings, error) {
-	if len(binds) != len(exprs) {
-		return nil, fmt.Errorf("NewLambdaVec: binds and exprs length mismatch")
-	}
 	b := Bindings{
 		Data:  make(map[reader.MalSymbol]reader.MalType),
 		Outer: outer,
 	}
-	for i := range binds {
+	i := 0
+	done := false
+	for i < len(binds) && !done {
 		k, ok := binds[i].(reader.MalSymbol)
 		if !ok {
 			return nil, fmt.Errorf("NewLambda: lambda binding not a symbol: %v", binds[i])
 		}
-		b.Set(k, exprs[i])
+		if k == reader.MalSymbol("&") {
+			if i+1 >= len(binds) {
+				return nil, fmt.Errorf("NewLambda: variadic marker with no following symbol")
+			}
+			variadic, ok := binds[i+1].(reader.MalSymbol)
+			if !ok {
+				return nil, fmt.Errorf("NewLambda: variadic market not a symbol")
+			}
+			b.Set(variadic, exprs[i:])
+			done = true
+		} else {
+			b.Set(k, exprs[i])
+		}
+		i++
 	}
 	return &b, nil
 }

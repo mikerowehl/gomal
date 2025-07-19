@@ -214,6 +214,14 @@ func rep() {
 	for k, v := range core.NS {
 		env.Set(k, v)
 	}
+	notLine, err := reader.Read_str("(def! not (fn* (a) (if a false true)))")
+	if err != nil {
+		fmt.Println("Error processing stdlib line")
+	}
+	_, err = EVAL(notLine, env)
+	if err != nil {
+		fmt.Printf("Error setting up stdlib %v", err)
+	}
 	for {
 		line, eof, err := READ(scanner)
 		if eof {

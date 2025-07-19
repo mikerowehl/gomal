@@ -84,7 +84,7 @@ var div = func(a reader.MalType) (reader.MalType, error) {
 }
 
 var prstr = func(a reader.MalType) (reader.MalType, error) {
-	l, err := listCast(a, 1)
+	l, err := listCast(a, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ var prstr = func(a reader.MalType) (reader.MalType, error) {
 }
 
 var str = func(a reader.MalType) (reader.MalType, error) {
-	l, err := listCast(a, 1)
+	l, err := listCast(a, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ var str = func(a reader.MalType) (reader.MalType, error) {
 }
 
 var prn = func(a reader.MalType) (reader.MalType, error) {
-	l, err := listCast(a, 1)
+	l, err := listCast(a, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ var prn = func(a reader.MalType) (reader.MalType, error) {
 }
 
 var printl = func(a reader.MalType) (reader.MalType, error) {
-	l, err := listCast(a, 1)
+	l, err := listCast(a, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -149,16 +149,21 @@ var islist = func(a reader.MalType) (reader.MalType, error) {
 	return reader.MalType(true), nil
 }
 
-var emptylist = func(a reader.MalType) (reader.MalType, error) {
+var empty = func(a reader.MalType) (reader.MalType, error) {
 	l, err := listCast(a, 1)
 	if err != nil {
 		return nil, err
 	}
-	lp, ok := l[0].(reader.MalList)
-	if !ok {
+	switch lp := l[0].(type) {
+	case reader.MalList:
+		return reader.MalType(bool(len(lp) == 0)), nil
+	case reader.MalVector:
+		return reader.MalType(bool(len(lp) == 0)), nil
+	case reader.MalHashmap:
+		return reader.MalType(bool(len(lp) == 0)), nil
+	default:
 		return reader.MalType(false), nil
 	}
-	return reader.MalType(bool(len(lp) == 0)), nil
 }
 
 var count = func(a reader.MalType) (reader.MalType, error) {
@@ -309,7 +314,7 @@ var NS = map[reader.MalSymbol]reader.MalFunc{
 	"println": printl,
 	"list":    list,
 	"list?":   islist,
-	"empty?":  emptylist,
+	"empty?":  empty,
 	"count":   count,
 	"=":       equal,
 	"<":       lt,
