@@ -3,4 +3,4 @@ cmd/step1_read_print/step1_read_print
 cmd/step2_eval/step2_eval
 cmd/step3_env/step3_env
 cmd/step4_if_fn_do/step4_if_fn_do
-
+cmd/step5_tco/step5_tco

@@ -12,3 +12,6 @@ cmd/step3_env/step3_env: cmd/step3_env/step3_env.go pkg/reader/reader.go pkg/env
 
 cmd/step4_if_fn_do/step4_if_fn_do: cmd/step4_if_fn_do/step4_if_fn_do.go pkg/reader/reader.go pkg/env/env.go pkg/core/core.go
 	cd cmd/step4_if_fn_do; go build
+
+cmd/step5_tco/step5_tco: cmd/step5_tco/step5_tco.go pkg/reader/reader.go pkg/env/env.go pkg/core/core.go
+	cd cmd/step5_tco; go build
