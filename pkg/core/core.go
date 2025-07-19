@@ -181,52 +181,89 @@ var count = func(a reader.MalType) (reader.MalType, error) {
 	}
 }
 
-func listCompare(l1 reader.MalList, l2 reader.MalList) (reader.MalType, error) {
-	var err error = nil
-	ret := reader.MalType(true)
-	i := 0
-	for i < len(l1) && ret == reader.MalType(true) && err == nil {
-		ret, err = equalItems(l1[i], l2[i])
-		i++
-	}
-	return ret, err
+type iterator struct {
+	v    reader.MalType
+	curr int
 }
 
-func vectorCompare(v1 reader.MalVector, v2 reader.MalVector) (reader.MalType, error) {
-	var err error = nil
-	ret := reader.MalType(true)
-	i := 0
-	for i < len(v1) && ret == reader.MalType(true) && err == nil {
-		ret, err = equalItems(v1[i], v2[i])
-		i++
+func NewMalIterator(v reader.MalType) (*iterator, error) {
+	switch lv := v.(type) {
+	case reader.MalList:
+		ni := iterator{
+			v:    lv,
+			curr: 0,
+		}
+		return &ni, nil
+	case reader.MalVector:
+		ni := iterator{
+			v:    lv,
+			curr: 0,
+		}
+		return &ni, nil
 	}
-	return ret, err
+	return nil, fmt.Errorf("expected iterable value")
+}
+
+func (i *iterator) next() (reader.MalType, bool) {
+	switch lv := i.v.(type) {
+	case reader.MalList:
+		if i.curr >= len(lv) {
+			return nil, true
+		} else {
+			ret := lv[i.curr]
+			i.curr++
+			return ret, false
+		}
+	case reader.MalVector:
+		if i.curr >= len(lv) {
+			return nil, true
+		} else {
+			ret := lv[i.curr]
+			i.curr++
+			return ret, false
+		}
+	}
+	return nil, true
+}
+
+func seriesCompare(s1 reader.MalType, s2 reader.MalType) (reader.MalType, error) {
+	i1, err := NewMalIterator(s1)
+	if err != nil {
+		return nil, err
+	}
+	i2, err := NewMalIterator(s2)
+	if err != nil {
+		return nil, err
+	}
+	for {
+		v1, done1 := i1.next()
+		v2, done2 := i2.next()
+		if done1 && done2 {
+			return reader.MalType(true), nil
+		}
+		if done1 || done2 {
+			return reader.MalType(false), nil
+		}
+		check, err := equalItems(v1, v2)
+		if err != nil {
+			return nil, err
+		}
+		if check != reader.MalType(true) {
+			return reader.MalType(false), nil
+		}
+	}
 }
 
 func equalItems(v1 reader.MalType, v2 reader.MalType) (reader.MalType, error) {
 	v1t := reflect.TypeOf(v1)
 	v2t := reflect.TypeOf(v2)
-	if v1t == reader.MalListType {
-		if v2t != reader.MalListType {
-			return reader.MalType(false), nil
+	if v1t == reader.MalListType || v1t == reader.MalVectorType {
+		if v2t == reader.MalListType || v2t == reader.MalVectorType {
+			return seriesCompare(v1, v2)
 		}
-		l1 := v1.(reader.MalList)
-		l2 := v2.(reader.MalList)
-		if len(l1) != len(l2) {
-			return reader.MalType(false), nil
-		}
-		return listCompare(l1, l2)
-	} else if v1t == reader.MalVectorType {
-		if v2t != reader.MalVectorType {
-			return reader.MalType(false), nil
-		}
-		vec1 := v1.(reader.MalVector)
-		vec2 := v2.(reader.MalVector)
-		if len(vec1) != len(vec2) {
-			return reader.MalType(false), nil
-		}
-		return vectorCompare(vec1, vec2)
-	} else if v1t == reader.MalHashmapType || v2t == reader.MalHashmapType {
+		return reader.MalType(false), nil
+	}
+	if v1t == reader.MalHashmapType || v2t == reader.MalHashmapType {
 		return reader.MalType(false), nil
 	}
 	return reader.MalType(v1 == v2), nil
